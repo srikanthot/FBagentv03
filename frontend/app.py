@@ -20,10 +20,11 @@ load_dotenv(override=True)
 
 _backend_port = os.getenv("BACKEND_PORT", "8000")
 BACKEND_URL = os.getenv("BACKEND_URL", f"http://localhost:{_backend_port}")
+FRONTEND_TITLE = os.getenv("FRONTEND_TITLE", "PSEG Tech Manual Agent")
 
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="PSEG Tech Manual Agent",
+    page_title=FRONTEND_TITLE,
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",

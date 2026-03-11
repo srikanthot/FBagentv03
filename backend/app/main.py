@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router
+from app.config.settings import ALLOWED_ORIGINS
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,10 +22,11 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Allow Streamlit frontend (localhost:8501) and any other local dev origin
+# CORS — configurable via ALLOWED_ORIGINS env var (comma-separated).
+# Defaults to "*" so local dev and Azure dev deployments work without configuration.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

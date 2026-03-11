@@ -75,3 +75,12 @@ MAX_CHUNKS_DOMINANT_SOURCE: int = int(os.getenv("MAX_CHUNKS_DOMINANT_SOURCE", "4
 # After diversity filtering, discard chunks whose effective score < SCORE_GAP_MIN_RATIO × top.
 SCORE_GAP_MIN_RATIO: float = float(os.getenv("SCORE_GAP_MIN_RATIO", "0.55"))
 TRACE_MODE: bool = os.getenv("TRACE_MODE", "true").lower() == "true"
+
+# ---------------------------------------------------------------------------
+# CORS — comma-separated origins, or "*" to allow all (default for dev/local)
+# ---------------------------------------------------------------------------
+_allowed_origins_raw: str = os.getenv("ALLOWED_ORIGINS", "*")
+if _allowed_origins_raw.strip() == "*":
+    ALLOWED_ORIGINS: list[str] = ["*"]
+else:
+    ALLOWED_ORIGINS = [o.strip() for o in _allowed_origins_raw.split(",") if o.strip()]

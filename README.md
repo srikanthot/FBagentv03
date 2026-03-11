@@ -97,10 +97,14 @@ pip install -r frontend/requirements.txt
 ### 4. Configure
 
 ```bash
-cp .env.example .env
+# Backend
+cp .env.backend.example backend/.env
+
+# Frontend
+cp .env.frontend.example frontend/.env
 ```
 
-Open `.env` and fill in your values. Key things to note:
+Open each `.env` and fill in your values. Key things to note:
 
 - `SEARCH_*_FIELD` variables must match your actual Azure AI Search index field names exactly.
 - `SEARCH_PAGE_FIELD` should be left blank if your index has no page number field — an empty value means it is skipped in the select list and no page info is shown in citations.
@@ -111,12 +115,13 @@ Open `.env` and fill in your values. Key things to note:
 ### 5. Run
 
 ```bash
-# Terminal 1 — backend
+# Terminal 1 — backend (from repo root or backend/)
 cd backend
 uvicorn app.main:app --reload --port 8000
 
-# Terminal 2 — frontend
-streamlit run frontend/app.py --server.port 8501
+# Terminal 2 — frontend (from repo root or frontend/)
+cd frontend
+streamlit run app.py --server.port 8501
 ```
 
 Open [http://localhost:8501](http://localhost:8501).
@@ -162,15 +167,19 @@ Open [http://localhost:8501](http://localhost:8501).
 | `MAX_CHUNKS_DOMINANT_SOURCE` | no | Default: `4`. Max chunks allowed from the dominant source |
 | `SCORE_GAP_MIN_RATIO` | no | Default: `0.55`. Discard chunks whose effective score falls below this fraction of the top score |
 | `TRACE_MODE` | no | Default: `true`. Logs ranked chunks with source, section, reranker score, heading, and content preview |
-| `BACKEND_URL` | no | Default: `http://localhost:8000`. Frontend uses this to reach the API |
+| `ALLOWED_ORIGINS` | no | Default: `*`. Comma-separated CORS origins for the backend. Set to your frontend URL in Azure (e.g. `https://pseg-frontend.azurewebsites.net`) |
+| `BACKEND_URL` | no | Default: `http://localhost:8000`. Frontend uses this to reach the API. Set to your backend App Service URL in Azure |
+| `FRONTEND_TITLE` | no | Default: `PSEG Tech Manual Agent`. Browser tab title for the Streamlit app |
 
 ## Project layout
 
 ```
 pseg-agent-pattern-python/
 ├── .gitignore
-├── .env.example
+├── .env.backend.example               # Backend env template (copy to backend/.env)
+├── .env.frontend.example              # Frontend env template (copy to frontend/.env)
 ├── README.md
+├── DEPLOYMENT.md                      # Azure App Service deployment guide
 ├── AZURE_SEARCH_SETUP.md              # Index / skillset / indexer JSON for Azure setup
 ├── backend/
 │   ├── requirements.txt
