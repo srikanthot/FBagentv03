@@ -9,10 +9,8 @@ Keepalive ping events are consumed silently.
 import json
 import os
 import uuid
-from typing import Generator
 
 import requests
-import sseclient
 import streamlit as st
 from dotenv import load_dotenv
 
@@ -49,7 +47,6 @@ st.markdown("""
         max-width: 1200px;
     }
 
-    /* User message bubble */
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatar-user"]) {
         background: linear-gradient(135deg, #eef4fb, #e3ecf7);
         border: 1px solid #d0dff0;
@@ -59,7 +56,6 @@ st.markdown("""
         margin: 0.5rem 0;
     }
 
-    /* Assistant message bubble */
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatar-assistant"]) {
         background: var(--card);
         border: 1px solid var(--border);
@@ -101,35 +97,49 @@ if "session_id" not in st.session_state:
 
 
 # ── SSE consumer ──────────────────────────────────────────────────────────────
-def _token_stream(
-    sse_response: requests.Response,
-    citations_out: list,
-) -> Generator[str, None, None]:
-    """Consume an SSE response and yield decoded text tokens.
+def _token_stream(response: requests.Response, citations_out: list):
+    """Parse SSE manually from requests.iter_lines()."""
+    current_event = "message"
+    data_lines = []
 
-    Citations are captured in *citations_out* as a side effect when the
-    named ``citations`` event arrives. Keepalive ``ping`` events are ignored.
-    Stops when ``[DONE]`` is received.
-    """
-    client = sseclient.SSEClient(sse_response)
-    for event in client.events():
-        if event.event == "citations":
-            try:
-                data = json.loads(event.data)
-                citations_out.extend(data.get("citations", []))
-            except json.JSONDecodeError:
-                pass
-        elif event.event == "ping":
+    for raw_line in response.iter_lines(decode_unicode=True):
+        if raw_line is None:
             continue
-        elif event.data == "[DONE]":
-            break
-        else:
-            yield event.data.replace("\\n", "\n")
+
+        line = raw_line.strip()
+
+        if line == "":
+            if data_lines:
+                data = "\n".join(data_lines)
+
+                if current_event == "citations":
+                    try:
+                        payload = json.loads(data)
+                        citations_out.extend(payload.get("citations", []))
+                    except json.JSONDecodeError:
+                        pass
+
+                elif current_event == "ping":
+                    pass
+
+                elif data == "[DONE]":
+                    break
+
+                else:
+                    yield data.replace("\\n", "\n")
+
+            current_event = "message"
+            data_lines = []
+            continue
+
+        if line.startswith("event:"):
+            current_event = line[len("event:"):].strip()
+        elif line.startswith("data:"):
+            data_lines.append(line[len("data:"):].strip())
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 def render_citations(citations: list) -> None:
-    """Render citations as a collapsible expander panel."""
     with st.expander(f"📚 Sources ({len(citations)})", expanded=False):
         for i, c in enumerate(citations, 1):
             source = c.get("source", "Unknown")
@@ -157,7 +167,6 @@ def render_citations(citations: list) -> None:
 
 
 def render_history() -> None:
-    """Render all previous messages from session state."""
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
@@ -265,7 +274,6 @@ def main() -> None:
                     },
                     stream=True,
                     timeout=120,
-                    allow_redirects=False,
                 )
 
                 if resp.status_code >= 400:
@@ -290,6 +298,13 @@ def main() -> None:
                     full_answer = st.write_stream(
                         _token_stream(resp, citations_captured)
                     ) or ""
+
+                    if not full_answer.strip():
+                        try:
+                            fallback_text = resp.text[:1500]
+                        except Exception:
+                            fallback_text = "<empty streamed response>"
+                        st.warning(f"No tokens rendered. Raw response preview:\n{fallback_text}")
 
                     if citations_captured:
                         st.markdown("---")
