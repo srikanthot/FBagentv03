@@ -8,8 +8,9 @@ load_dotenv(override=True)
 
 _backend_port = os.getenv("BACKEND_PORT", "8000")
 BACKEND_URL = os.getenv("BACKEND_URL", f"http://localhost:{_backend_port}").rstrip("/")
-FRONTEND_TITLE = os.getenv("FRONTEND_TITLE", "PSEG Tech Manual Agent")
-APP_VERSION = "frontend-json-v2"
+FRONTEND_TITLE = os.getenv("FRONTEND_TITLE", "PACG Tech Manual Agent Chatbot Prototype")
+APP_VERSION = "frontend-json-v3"
+FEEDBACK_FORM_URL = os.getenv("FEEDBACK_FORM_URL", "").strip()
 
 st.set_page_config(
     page_title=FRONTEND_TITLE,
@@ -29,11 +30,27 @@ st.markdown("""
         --border: #e2e8f0;
     }
 
-    .stApp { background: var(--bg) !important; }
+    .stApp {
+        background: var(--bg) !important;
+    }
 
     .main .block-container {
-        padding: 1.5rem 2rem 2rem !important;
-        max-width: 1200px;
+        padding: 1.2rem 1.5rem 2rem !important;
+        max-width: 1150px;
+    }
+
+    section[data-testid="stSidebar"] {
+        width: 280px !important;
+        min-width: 280px !important;
+        max-width: 280px !important;
+        background: var(--card) !important;
+        border-right: 1px solid #edf2f7;
+    }
+
+    [data-testid="stSidebarContent"] {
+        padding-top: 1rem !important;
+        padding-left: 0.9rem !important;
+        padding-right: 0.9rem !important;
     }
 
     [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatar-user"]) {
@@ -71,14 +88,37 @@ st.markdown("""
         font-weight: 600;
     }
 
-    [data-testid="stSidebar"] { background: var(--card) !important; }
+    .feedback-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+    }
 
-    hr { border: none; height: 1px; background: #edf2f7; margin: 1rem 0; }
+    .feedback-link a {
+        display: inline-block;
+        background: #f26522;
+        color: white !important;
+        text-decoration: none;
+        padding: 0.55rem 0.9rem;
+        border-radius: 8px;
+        font-weight: 600;
+        margin-top: 0.45rem;
+    }
+
+    hr {
+        border: none;
+        height: 1px;
+        background: #edf2f7;
+        margin: 1rem 0;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
 if "session_id" not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())
 
@@ -122,9 +162,9 @@ def render_history() -> None:
 def render_sidebar() -> None:
     with st.sidebar:
         st.markdown("""
-        <div style="text-align:center; padding: 0.75rem 0 0.5rem;">
+        <div style="text-align:center; padding: 0.5rem 0 0.35rem;">
             <svg viewBox="0 0 160 55" xmlns="http://www.w3.org/2000/svg"
-                 style="height:50px; width:auto;">
+                 style="height:48px; width:auto;">
                 <circle cx="28" cy="28" r="24" fill="#f26522"/>
                 <g fill="white">
                     <polygon points="28,8 29.5,17 26.5,17"/>
@@ -147,10 +187,9 @@ def render_sidebar() -> None:
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("**Tech Manual Agent**")
+        st.markdown("**Tech Manual Agent Prototype**")
         st.caption("Powered by Azure AI · GCC High")
         st.caption(f"App version: {APP_VERSION}")
-        st.caption(f"Backend URL: {BACKEND_URL}")
         st.markdown("---")
 
         st.markdown("**Backend Status**")
@@ -171,19 +210,39 @@ def render_sidebar() -> None:
             st.rerun()
 
         st.markdown("---")
+
+        st.markdown("**User Feedback**")
+        st.markdown(
+            """
+            <div class="feedback-box">
+                Share your expectations, usage pattern, and improvement ideas.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if FEEDBACK_FORM_URL:
+            st.markdown(
+                f'<div class="feedback-link"><a href="{FEEDBACK_FORM_URL}" target="_blank">Open Feedback Form</a></div>',
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info("Add FEEDBACK_FORM_URL in environment variables to show a feedback form link.")
+
+        st.markdown("---")
         st.caption(f"Session `{st.session_state.session_id[:8]}…`")
 
 
 def render_header() -> None:
     st.markdown("""
     <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
-                border-radius: 16px; padding: 1.25rem 2rem; margin-bottom: 1.25rem;
+                border-radius: 16px; padding: 1.1rem 1.6rem; margin-bottom: 1rem;
                 border-bottom: 4px solid #f26522;
                 box-shadow: 0 6px 20px rgba(30,58,95,0.12);">
-        <div style="font-size:1.3rem; font-weight:700; color:white; margin-bottom:4px;">
-            ⚡ Tech Manual Agent
+        <div style="font-size:1.25rem; font-weight:700; color:white; margin-bottom:4px;">
+            ⚡ PACG Tech Manual Agent Chatbot Prototype
         </div>
-        <div style="font-size:0.88rem; color:rgba(255,255,255,0.85);">
+        <div style="font-size:0.87rem; color:rgba(255,255,255,0.85);">
             Ask questions against PSEG technical documentation.
             Answers are grounded in retrieved manual content with source citations.
         </div>
@@ -222,7 +281,6 @@ def main() -> None:
                 if resp.status_code != 200:
                     full_answer = (
                         f"Backend error: HTTP {resp.status_code}\n\n"
-                        f"URL: {url}\n\n"
                         f"Body:\n{resp.text}"
                     )
                     st.error(full_answer)
@@ -242,8 +300,8 @@ def main() -> None:
                         render_citations(citations_captured)
 
             except requests.exceptions.ConnectionError as e:
-                full_answer = f"Cannot connect to backend at `{BACKEND_URL}`.\n\n{e}"
-                st.error(full_answer)
+                full_answer = "Cannot connect to backend."
+                st.error(f"{full_answer}\n\n{e}")
 
             except requests.exceptions.Timeout:
                 full_answer = "Request timed out. Please try again."
@@ -260,9 +318,9 @@ def main() -> None:
             })
 
     st.markdown(
-        '<div style="text-align:center; padding: 1rem 0; margin-top:1.5rem; '
-        'color:#718096; font-size:0.78rem;">'
-        'PSEG Tech Manual Agent · Powered by Azure AI · GCC High'
+        '<div style="text-align:center; padding: 0.8rem 0; margin-top:1.2rem; '
+        'color:#718096; font-size:0.76rem;">'
+        'PACG Tech Manual Agent Chatbot Prototype · Powered by Azure AI · GCC High'
         '</div>',
         unsafe_allow_html=True,
     )
