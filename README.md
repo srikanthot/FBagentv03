@@ -223,3 +223,29 @@ if FEEDBACK_URL:
         f'📝 Share Feedback</button></a>',
         unsafe_allow_html=True,
     )
+
+
+    What does Buried Underground Distribution (BUD) mean in the Plant Engineering Policies and Procedures manual?
+What are the work procedures involved in BUD joint trench installations?
+What are the requirements for revenue metering equipment in customer electrical installations?
+What are the general specifications for a customer-owned 26.4 kV outdoor substation?
+Why are surge arresters used in substations, and what purpose do they serve?
+What is an Arc Flash Hazard Calculation Study, and why is it important for electrical systems?
+ 
+ 
+A developer is planning to install an underground electrical distribution system for a new residential project. What procedures should be followed for Buried Underground Distribution (BUD) installation?
+A customer is planning to build a 26.4 kV outdoor substation to connect to the utility system. What approvals and design requirements must be completed before construction begins?
+During the design of a customer electrical facility, engineers are concerned about worker safety around high-voltage equipment. When should an Arc Flash Hazard Calculation Study be performed and why?
+A company wants to install a solar generation system and connect it to the utility grid as a Non-Utility Generator (NUG). What requirements must be met before it can be connected to the utility system?
+During a storm, a voltage surge damages equipment at a substation. How do surge arresters help protect electrical equipment in such situations?
+ 
+What are the guidelines that should be followed for disconnecting switches for Customer-Owned 26.4 kV Outdoor Substation?
+ 
+Right now, I am installing the Underground Plastic Piping, so what are the safety measures I should take
+ 
+So I went to a location where one customer requested the Instructions for the PSE&G Residential Application for Gas Service, what should i have to say
+ 
+I was at one location, and I suspect Theft of Service and Tampering, so what should i have to do
+ 
+We removed a light at this pole a few months ago. If the customer wants a new light at the same exact pole within a year, do we treat it as a replacement or a brand-new install
+ 
